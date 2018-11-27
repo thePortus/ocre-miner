@@ -9,12 +9,12 @@ class Search(BaseRequest):
         search_url = ROOT_URL + SEARCH_URL
         first_term = True
         # ensure search terms are all valid (e.g. authority is a string)
-        if search_terms['authority']:
+        if 'authority' in search_terms:
             if type(search_terms['authority']) != str:
                 raise Exception(
                     'Authority search term must be a single string.'
                 )
-        if search_terms['portrait']:
+        if 'portrait' in search_terms:
             if type(
                 search_terms['portrait']
             ) != str and type(
@@ -24,7 +24,7 @@ class Search(BaseRequest):
                     'Portrait search term must either be a string or list.'
                 )
         # add search terms onto URL here
-        if search_terms['authority']:
+        if 'authority' in search_terms:
             # add query conjunction if this is not the first search term
             if not first_term:
                 search_url += '+AND+'
@@ -33,7 +33,7 @@ class Search(BaseRequest):
                 search_terms['authority'].replace(' ', '+')
             )
             first_term = False
-        if search_terms['portrait']:
+        if 'portrait' in search_terms:
             if not first_term:
                 search_url += '+AND+'
             # if a single string is sent, add to url

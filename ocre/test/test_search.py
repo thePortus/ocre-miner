@@ -1,4 +1,13 @@
-from . import Search
+#!/usr/bin/python
 
-search = Search({'portrait': 'Julia Domna'})
-print(search)
+import unittest
+
+from ..search import Search
+
+
+class TestSearch(unittest.TestCase):
+
+    def test_url(self):
+        search = Search({'portrait': 'Julia Domna'})
+        print(search)
+        return self.assertTrue(True)
