@@ -10,7 +10,7 @@ config = {
     'author': 'David J. Thomas',
     'author_email': 'dave.a.base@gmail.com',
     'description': """Wrapper for the Online Coins of the Roman Empire API""",
-    'version': '0.0.6',
+    'version': '0.0.0',
     'LICENSE': 'MIT',
     'long_description': """Wrapper for the Online Coins of the Roman Empire API""",
     'url': 'https://github.com/thePortus/ocre-miner',
