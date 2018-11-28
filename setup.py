@@ -9,12 +9,19 @@ config = {
     'name': 'ocre-miner',
     'author': 'David J. Thomas',
     'author_email': 'dave.a.base@gmail.com',
-    'description': """Wrapper for the Online Coins of the Roman Empire API""",
+    'description': (
+        'Wrapper for the Online Coins of the Roman Empire API'
+    ),
     'version': '0.0.0',
     'LICENSE': 'MIT',
-    'long_description': """Wrapper for the Online Coins of the Roman Empire API""",
+    'long_description': (
+        'Wrapper for the Online Coins of the Roman Empire API'
+    ),
     'url': 'https://github.com/thePortus/ocre-miner',
-    'download_url': 'https://github.com/thePortus/ocre-miner/archive/master.zip',
+    'download_url': (
+        'https://github.com/thePortus/'
+        'ocre-miner/archive/master.zip'
+    ),
     'packages': find_packages(),
     'install_requires': [
         'beautifulsoup4==4.6.3'

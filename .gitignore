@@ -187,4 +187,4 @@ tmp/
 *.egg
 
 ===========CUSTOM============
-test_notebooks
+test_*.ipynb
