@@ -26,8 +26,9 @@ class ResultsPage(BaseRequest):
             record_id = record.find('a')['href']
             # remove end of the link to get record id
             record_id = (record_id
+                         .replace('http://numismatics.org/ocre/', '')
+                         .replace('id/', '')
                          .replace('?lang=en', '')
-                         .replace('http://numismatics.org/ocre/id', '')
                          )
             record_ids.append(record_id)
         return record_ids
@@ -145,10 +146,12 @@ class Search(BaseRequest):
         # if not the initial method call, handle recursion
         else:
             current_results_page = current_results_page.next_page
-        # get the ids on the current page and append them to list_of_ids
-        list_of_ids += current_results_page.record_ids
-        # if no next page, current_results_page will be False, end recusion
-        if not current_results_page:
+        # if new results page, get ids on page and append to list_of_ids
+        try:
+            new_record_ids = current_results_page.record_ids
+        # if no next page, will cause exception, stop recursion
+        except:
             return list_of_ids
-        # otherwise call self recursively to keep getting ids
+        # otherwise append new ids and call self recursively
+        list_of_ids += new_record_ids
         return self.get_record_ids(list_of_ids, current_results_page)

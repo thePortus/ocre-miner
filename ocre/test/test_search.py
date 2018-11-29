@@ -7,7 +7,7 @@ from ..search import Search, ResultsPage
 
 class TestResultsPage(unittest.TestCase):
 
-    def test_results_links(self):
+    def test_results_ids(self):
         results_url = (
             'http://numismatics.org/ocre/results?q='
             'portrait_facet:%22Julia%20Domna%22&lang=en'
@@ -15,7 +15,7 @@ class TestResultsPage(unittest.TestCase):
         results_page = ResultsPage(results_url, options={'silent': True})
         first_record_url = results_page.record_ids[0]
         return self.assertTrue(
-            first_record_url.startswith('id/ric.4.ss.159?lang=en')
+            first_record_url.startswith('ric.4.ss.159')
         )
 
     def test_next_button_exists(self):
