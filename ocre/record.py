@@ -47,7 +47,7 @@ class BaseRecords(UserList):
                     .format(
                         counter + 1,
                         total_records,
-                        round((counter + 1) / total_records, 2)
+                        round(((counter + 1) / total_records) * 100, 2)
                     ),
                     end=' '
                 )
