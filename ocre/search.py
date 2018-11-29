@@ -2,6 +2,57 @@ from .base import BaseRequest
 from .settings import ROOT_URL, SEARCH_URL
 
 
+class ResultsPage(BaseRequest):
+    """Aides scraping individual records from a single page of search
+    results."""
+    _soup = None
+
+    def __init__(self, url, options={}):
+        super().__init__(url, options)
+        # call soup function and store results so multiple methods can use
+        self._soup = self.soup()
+
+    @property
+    def record_ids(self):
+        """Gives list of urls of records found on the results page."""
+        record_ids = []
+        # get each record as a list
+        records = self._soup.find_all(
+            'div', class_='row result-doc'
+        )
+        # get id from each record and append to list of ids
+        for record in records:
+            # get link containing record id
+            record_id = record.find('a')['href']
+            # remove end of the link to get record id
+            record_id = (record_id
+                         .replace('?lang=en', '')
+                         .replace('http://numismatics.org/ocre/id', '')
+                         )
+            record_ids.append(record_id)
+        return record_ids
+
+    @property
+    def next_page_link(self):
+        """Returns url to next page or False if there is no next page."""
+        paging_element = self._soup.find('div', class_='paging_div row')
+        link_element = paging_element.find('a', attrs={'title': 'Next'})
+        # if the button is disabled, no next page exists, return False
+        if 'disabled' in link_element['class']:
+            return False
+        # otherwise return the link
+        return link_element['href']
+
+    @property
+    def next_page(self):
+        """Returns new ResultsPage for the next page, or False if at end."""
+        # return False if there is no next page
+        if not self.next_page_link:
+            return False
+        # otherwise return next instance of class corresponding to next url
+        return self.__class__(self.next_page_link)
+
+
 class Search(BaseRequest):
     """Makes a single search request, parses HTML response, gives results."""
 
@@ -83,3 +134,21 @@ class Search(BaseRequest):
         first_term = False
         # returning the new url and if first_term has changed
         return (new_url, first_term)
+
+    def get_record_ids(self, list_of_ids=[], current_results_page=None):
+        """Recursive function to gather all ids of records from search
+        does not require any arguments to call, arguments are for recursive
+        calling."""
+        # if this is the initial method call, begin the process
+        if not current_results_page:
+            current_results_page = ResultsPage(self.data, options=self.options)
+        # if not the initial method call, handle recursion
+        else:
+            current_results_page = current_results_page.next_page
+        # get the ids on the current page and append them to list_of_ids
+        list_of_ids += current_results_page.record_ids
+        # if no next page, current_results_page will be False, end recusion
+        if not current_results_page:
+            return list_of_ids
+        # otherwise call self recursively to keep getting ids
+        return self.get_record_ids(list_of_ids, current_results_page)
