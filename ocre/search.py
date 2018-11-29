@@ -41,8 +41,11 @@ class ResultsPage(BaseRequest):
         # if the button is disabled, no next page exists, return False
         if 'disabled' in link_element['class']:
             return False
-        # otherwise return the link
-        return link_element['href']
+        # otherwise return the link, remove extra part of link_element path
+        return (
+            ROOT_URL + SEARCH_URL + link_element['href']
+            .replace('results?q=', '')
+        )
 
     @property
     def next_page(self):

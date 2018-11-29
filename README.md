@@ -1,6 +1,7 @@
 # ocre-miner
 
 *Wrapper for the Online Coins of the Roman Empire API*
+
 ---
 
 [David J. Thomas](mailto:dave.a.base@gmail.com), [thePortus.com](http://thePortus.com)<br />

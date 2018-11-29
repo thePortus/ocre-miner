@@ -188,3 +188,4 @@ tmp/
 
 ===========CUSTOM============
 test_*.ipynb
+test_data*
