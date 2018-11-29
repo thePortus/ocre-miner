@@ -86,7 +86,7 @@ class BaseRequest(UserString):
                     print('Retrying...')
                 return self.fetch()
             # if below retry limit, return recursively and increment counter
-        elif retry_counter <= self.options['max_retries']:
+            elif retry_counter <= self.options['max_retries']:
                 if not self.options['silent']:
                     print('Retrying')
                 return self.fetch(retry_counter=retry_counter+1)
