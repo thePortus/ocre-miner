@@ -44,9 +44,7 @@ class BaseRequest(UserString):
         if 'silent' not in options:
             options['silent'] = False
         self.data = url
-        self.delay = options['delay']
-        self.max_retries = options['max_retries']
-        self.silent = options['silent']
+        self.options = options
 
     def fetch(self, retry_counter=0):
         """Returns http request from URL as a string.
@@ -72,10 +70,10 @@ class BaseRequest(UserString):
             <!DOCTYPE html>\\r\\n<html>\\r\\n\r\\n    <head>\\r\\n\r\\n        <title>Stack Overflow...
         """ # noqa
         # print message unless silent option
-        if not self.silent:
+        if not self.options['silent']:
             print('Fetching', self.data)
         # enforce delay to reduce server load
-        time.sleep(self.delay)
+        time.sleep(self.options['delay'])
         # attempt to fetch web page
         try:
             request = requests.get(self.data)
@@ -83,18 +81,18 @@ class BaseRequest(UserString):
         except Exception:
             print('Problem fetching', self.data)
             # if infinite retries is set, always try again
-            if not self.max_retries:
-                if not self.silent:
+            if not self.options['max_retries']:
+                if not self.options['silent']:
                     print('Retrying...')
                 return self.fetch()
             # if below retry limit, return recursively and increment counter
-            elif retry_counter <= self.max_retries:
-                if not self.silent:
+        elif retry_counter <= self.options['max_retries']:
+                if not self.options['silent']:
                     print('Retrying')
                 return self.fetch(retry_counter=retry_counter+1)
             # otherwise retry limit has been hit, stop fetching
             else:
-                if not self.silent:
+                if not self.options['silent']:
                     print('Retry limit reached, skipping', self.data)
                 return None
         # if everything ok, returning page html instead of the entire request
