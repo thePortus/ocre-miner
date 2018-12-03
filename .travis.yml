@@ -12,8 +12,7 @@ os: linux
 dist: precise
 # setting environment variables
 env:
-  - PACKAGE_VERSION=0.0.0
-  - NODE_ENV=test
+  - PACKAGE_VERSION=0.0.0 NODE_ENV=test
 # command to install dependencies
 install:
   - pip install -r requirements-dev.txt
