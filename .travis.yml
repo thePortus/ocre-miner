@@ -4,6 +4,16 @@ python:
   - "3.6"
   - "3.6-dev"  # 3.6 development branch
   - "3.7-dev"  # 3.7 development branch
+# enable the use of sudo
+sudo: required
+# operating system to use
+os: linux
+# distribution to use
+dist: precise
+# setting environment variables
+env:
+  - PACKAGE_VERSION=0.0.0
+  - NODE_ENV=test
 # command to install dependencies
 install:
   - pip install -r requirements-dev.txt
@@ -12,3 +22,6 @@ script:
   - nose2
 after_success:
   - coveralls
+notifications:
+  on_success: never
+  on_failure: never
