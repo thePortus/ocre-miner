@@ -2,10 +2,10 @@
 
 import unittest
 
-from ..record import JSONRecords
+from ..record import JSONRecord
 
 
-class TestJSONRecords(unittest.TestCase):
+class TestJSONRecord(unittest.TestCase):
 
     def test_convert_list(self):
         test_data = [
@@ -19,7 +19,7 @@ class TestJSONRecords(unittest.TestCase):
                 "@id": "http://nomisma.org/id/geta"
             }
           ]
-        test_results = JSONRecords.convert(test_data, '@id')
+        test_results = JSONRecord.convert(test_data, '@id')
         return self.assertTrue(
             len(test_results) > 1 and type(test_results) == list
         )
@@ -36,7 +36,7 @@ class TestJSONRecords(unittest.TestCase):
                 )
             }
           ]
-        test_results = JSONRecords.convert(test_data, '@id')
+        test_results = JSONRecord.convert(test_data, '@id')
         return self.assertTrue(
             test_results[1] == 'Ceres'
         )

@@ -11,7 +11,12 @@ from .settings import (
 )
 
 
-class JSONRecord(BaseRequest):
+class BaseRecord(BaseRequest):
+    """Parent class to individual record classes of different data types."""
+    pass
+
+
+class JSONRecord(BaseRecord):
     """Retreives individual coin record as a JSON."""
     record_id = None
 
@@ -22,23 +27,6 @@ class JSONRecord(BaseRequest):
             options
         )
         self.record_id = record_id
-
-    def get(self):
-        """Retreives record data from web and converts to Python dict"""
-        return json.loads(self.fetch())
-
-
-class BaseRecords(UserList):
-    """Parent class to all filetype specific batch record classes."""
-    record_object = None
-    record_ids = []
-
-    def __init__(self, record_ids, options={}):
-        super().__init__()
-        self.options = options
-        # fill self will JSONRecord objects corresponding to ids
-        for record_id in record_ids:
-            self.data.append(self.record_object(record_id, options))
 
     @classmethod
     def convert(self, parent_data, keyword=None):
@@ -59,7 +47,7 @@ class BaseRecords(UserList):
         for internal_dict in parent_data:
             # if a string, simply trim nomisma's url prefix
             if type(internal_dict) == str:
-                if internal_dict.beginswith(NOMISA_URL):
+                if internal_dict.beginswith(NOMISMA_URL):
                     new_value = internal_dict.replace(NOMISMA_URL, '')
                 retreived_values.append(new_value)
             elif keyword in internal_dict:
@@ -86,10 +74,179 @@ class BaseRecords(UserList):
         return retreived_values
 
     def get(self):
+        """Retreives record data from web and converts to Python dict. Raw
+        data is in the form of a jsonld file for linked data exchange. This
+        function converts it to a more traditional JSON format for data
+        analysis."""
+        raw_data = json.loads(self.fetch())
+        # go to dictionary inside json-ld containing the actual save_data
+        new_data = raw_data['@graph']
+        # convert from JSON-ld to plain JSON to make easier to use
+        converted_data = {
+            'id': None,
+            'label': None,
+            'source': None,
+            'denomination': None,
+            'material': None,
+            'authority': None,
+            'mint': None,
+            'region': None,
+            'start_date': None,
+            'end_date': None,
+            'obverse_legend': None,
+            'obverse_description': None,
+            'obverse_portraits': [],
+            'reverse_legend': None,
+            'reverse_description': None,
+            'reverse_portraits': [],
+            'all_portraits': []
+        }
+        try:
+            converted_data['id'] = self.convert(
+                new_data[0]['@id']
+            )
+        except:
+            pass
+        try:
+            converted_data['label'] = self.convert(
+                new_data[0]['skos:prefLabel'], '@value'
+            )
+        except:
+            pass
+        try:
+            converted_data['source'] = self.convert(
+                new_data[0]['dcterms:source'], '@id'
+            )
+        except:
+            pass
+        try:
+            converted_data['manufacture'] = self.convert(
+                new_data[0]['nmo:hasManufacture'], '@id'
+            )
+        except:
+            pass
+        try:
+            converted_data['denomination'] = self.convert(
+                new_data[0]['nmo:hasDenomination'], '@id'
+            )
+        except:
+            pass
+        try:
+            converted_data['material'] = self.convert(
+                new_data[0]['nmo:hasMaterial'], '@id'
+            )
+        except:
+            pass
+        try:
+            converted_data['authority'] = self.convert(
+                new_data[0]['nmo:hasAuthority'], '@id'
+            )
+        except:
+            pass
+        try:
+            converted_data['mint'] = self.convert(
+                new_data[0]['nmo:hasMint'], '@id'
+            )
+        except:
+            pass
+        try:
+            converted_data['region'] = self.convert(
+                new_data[0]['nmo:hasRegion'], '@id'
+            )
+        except:
+            pass
+        try:
+            converted_data['start_date'] = int(self.convert(
+                new_data[0]['nmo:hasStartDate'], '@value'
+            ))
+        except:
+            pass
+        try:
+            converted_data['end_date'] = int(self.convert(
+                new_data[0]['nmo:hasEndDate'], '@value'
+            ))
+        except:
+            pass
+        try:
+            converted_data['obverse_legend'] = self.convert(
+                new_data[1]['nmo:hasLegend'], '@value'
+            )
+        except:
+            pass
+        try:
+            converted_data['obverse_description'] = self.convert(
+                new_data[1]['dcterms:description'], '@value'
+            )
+        except:
+            pass
+        try:
+            converted_data['obverse_portraits'] = self.convert(
+                new_data[1]['nmo:hasPortrait'], '@id'
+            )
+        except:
+            pass
+        try:
+            converted_data['reverse_legend'] = self.convert(
+                new_data[2]['nmo:hasLegend'], '@value'
+            )
+        except:
+            pass
+        try:
+            converted_data['reverse_description'] = self.convert(
+                new_data[2]['dcterms:description'], '@value'
+            )
+        except:
+            pass
+        try:
+            converted_data['reverse_portraits'] = self.convert(
+                new_data[2]['nmo:hasPortrait'], '@id'
+            )
+        except:
+            pass
+        # append front portraits to combined portraits list
+        if type(
+            converted_data['obverse_portraits']
+        ) == str:
+            converted_data['all_portraits'].append(
+                converted_data['obverse_portraits']
+            )
+        elif type(
+            converted_data['obverse_portraits']
+        ) == list:
+            converted_data[
+                'all_portraits'
+            ] += converted_data['obverse_portraits']
+        # append back portraits to combined portraits list
+        if type(
+            converted_data['reverse_portraits']
+        ) == str:
+            converted_data['all_portraits'].append(
+                converted_data['reverse_portraits']
+            )
+        elif type(
+            converted_data['reverse_portraits']
+        ) == list:
+            converted_data[
+                'all_portraits'
+            ] += converted_data['reverse_portraits']
+        return converted_data
+
+
+class BaseRecords(UserList):
+    """Parent class to all filetype specific batch record classes."""
+    record_object = None
+    record_ids = []
+
+    def __init__(self, record_ids, options={}):
+        super().__init__()
+        self.options = options
+        # fill self will JSONRecord objects corresponding to ids
+        for record_id in record_ids:
+            self.data.append(self.record_object(record_id, options))
+
+    def get(self):
         """Gets all records as dicts in parent dict with ids as keywords."""
-        raw_data = {}
-        converted_data = {}
-        new_data = None
+        processed_data = {}
         counter = 0
         total_records = len(self.data)
         for record in self.data:
@@ -103,193 +260,10 @@ class BaseRecords(UserList):
                     ),
                     end=''
                 )
-            raw_data[record.record_id] = record.get()
+            processed_data[record.record_id] = record.get()
             counter += 1
-            # go to dictionary inside json-ld containing the actual save_data
-            new_data = raw_data[record.record_id]['@graph']
-            # convert from JSON-ld to plain JSON to make easier to use
-            converted_data[record.record_id] = {
-                'id': None,
-                'label': None,
-                'source': None,
-                'denomination': None,
-                'material': None,
-                'authority': None,
-                'mint': None,
-                'region': None,
-                'start_date': None,
-                'end_date': None,
-                'obverse_legend': None,
-                'obverse_description': None,
-                'obverse_portraits': [],
-                'reverse_legend': None,
-                'reverse_description': None,
-                'reverse_portraits': [],
-                'all_portraits': []
-            }
-            try:
-                converted_data[record.record_id][
-                    'id'
-                ] = self.convert(
-                    new_data[0]['@id']
-                )
-            except:
-                pass
-            try:
-                converted_data[record.record_id][
-                    'label'
-                ] = self.convert(
-                    new_data[0]['skos:prefLabel'], '@value'
-                )
-            except:
-                pass
-            try:
-                converted_data[record.record_id][
-                    'source'
-                ] = self.convert(
-                    new_data[0]['dcterms:source'], '@id'
-                )
-            except:
-                pass
-            try:
-                converted_data[record.record_id][
-                    'manufacture'
-                ] = self.convert(
-                    new_data[0]['nmo:hasManufacture'], '@id'
-                )
-            except:
-                pass
-            try:
-                converted_data[record.record_id][
-                    'denomination'
-                ] = self.convert(
-                    new_data[0]['nmo:hasDenomination'], '@id'
-                )
-            except:
-                pass
-            try:
-                converted_data[record.record_id][
-                    'material'
-                ] = self.convert(
-                    new_data[0]['nmo:hasMaterial'], '@id'
-                )
-            except:
-                pass
-            try:
-                converted_data[record.record_id][
-                    'authority'
-                ] = self.convert(
-                    new_data[0]['nmo:hasAuthority'], '@id'
-                )
-            except:
-                pass
-            try:
-                converted_data[record.record_id][
-                    'mint'
-                ] = self.convert(
-                    new_data[0]['nmo:hasMint'], '@id'
-                )
-            except:
-                pass
-            try:
-                converted_data[record.record_id][
-                    'region'
-                ] = self.convert(
-                    new_data[0]['nmo:hasRegion'], '@id'
-                )
-            except:
-                pass
-            try:
-                converted_data[record.record_id][
-                    'start_date'
-                ] = int(self.convert(
-                    new_data[0]['nmo:hasStartDate'], '@value'
-                ))
-            except:
-                pass
-            try:
-                converted_data[record.record_id][
-                    'end_date'
-                ] = int(self.convert(
-                    new_data[0]['nmo:hasEndDate'], '@value'
-                ))
-            except:
-                pass
-            try:
-                converted_data[record.record_id][
-                    'obverse_legend'
-                ] = self.convert(
-                    new_data[1]['nmo:hasLegend'], '@value'
-                )
-            except:
-                pass
-            try:
-                converted_data[record.record_id][
-                    'obverse_description'
-                ] = self.convert(
-                    new_data[1]['dcterms:description'], '@value'
-                )
-            except:
-                pass
-            try:
-                converted_data[record.record_id][
-                    'obverse_portraits'
-                ] = self.convert(
-                    new_data[1]['nmo:hasPortrait'], '@id'
-                )
-            except:
-                pass
-            try:
-                converted_data[record.record_id][
-                    'reverse_legend'
-                ] = self.convert(
-                    new_data[2]['nmo:hasLegend'], '@value'
-                )
-            except:
-                pass
-            try:
-                converted_data[record.record_id][
-                    'reverse_description'
-                ] = self.convert(
-                    new_data[2]['dcterms:description'], '@value'
-                )
-            except:
-                pass
-            try:
-                converted_data[record.record_id][
-                    'reverse_portraits'
-                ] = self.convert(
-                    new_data[2]['nmo:hasPortrait'], '@id'
-                )
-            except:
-                pass
-            # append front portraits to combined portraits list
-            if type(
-                converted_data[record.record_id]['obverse_portraits']
-            ) == str:
-                converted_data[record.record_id]['all_portraits'].append(
-                    converted_data[record.record_id]['obverse_portraits']
-                )
-            elif type(
-                converted_data[record.record_id]['obverse_portraits']
-            ) == list:
-                converted_data[record.record_id][
-                    'all_portraits'
-                ] += converted_data[record.record_id]['obverse_portraits']
-            # append back portraits to combined portraits list
-            if type(
-                converted_data[record.record_id]['reverse_portraits']
-            ) == str:
-                converted_data[record.record_id]['all_portraits'].append(
-                    converted_data[record.record_id]['reverse_portraits']
-                )
-            elif type(
-                converted_data[record.record_id]['reverse_portraits']
-            ) == list:
-                converted_data[record.record_id][
-                    'all_portraits'
-                ] += converted_data[record.record_id]['reverse_portraits']
-        return converted_data
+            # use record to fill out converted data here
+        return processed_data
 
     def save(self, filepath, overwrite=False):
         """Performs common saving pre-operations for child classes."""
