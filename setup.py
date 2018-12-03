@@ -14,7 +14,7 @@ config = {
     'description': (
         'Wrapper for the Online Coins of the Roman Empire API'
     ),
-    'version': '0.0.0',
+    'version': '0.0.1',
     'LICENSE': 'MIT',
     'long_description': (
         'Wrapper for the Online Coins of the Roman Empire API'
