@@ -56,6 +56,15 @@ class JSONRecord(BaseRecord):
                 if type(new_value) == str:
                     if new_value.startswith(NOMISMA_URL):
                         new_value = new_value.replace(NOMISMA_URL, '')
+                        # convert from snake case to capitalized normal names
+                        new_value = new_value.replace('_', ' ').capitalize()
+                        new_value = new_value.replace(
+                            ' iii', ' III'
+                        ).replace(
+                            ' ii', ' II'
+                        ).replace(
+                            ' iv', 'IV'
+                        )
                     # for british museum entries, replace with value from table
                     elif new_value.startswith(BRITISH_MUSEUM_URL):
                         # get last element of the url for the id

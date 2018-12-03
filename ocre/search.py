@@ -66,10 +66,26 @@ class Search(BaseRequest):
         search_url = ROOT_URL + SEARCH_URL
         first_term = True
         multiples_allowed_arguments = [
-            'portrait_facet'
+            'authority_facet',
+            'diety_facet',
+            'findspot_facet',
+            'issuer_facet',
+            'manufacture_facet',
+            'mint_facet',
+            'objectType_facet',
+            'portrait_facet',
+            'region_facet',
         ]
         change_argument_keywords = {
-            'portrait': 'portrait_facet'
+            'authority': 'authority_facet',
+            'diety': 'diety_facet',
+            'findspot': 'findspot_facet',
+            'issuer': 'issuer_facet',
+            'manufacture': 'manufacture_facet',
+            'mint': 'mint_facet',
+            'object_type': 'objectType_facet',
+            'portrait': 'portrait_facet',
+            'region': 'region_facet'
         }
         # change some keywords from user friendly to api keywords
         for change_argument_keyword in change_argument_keywords:
