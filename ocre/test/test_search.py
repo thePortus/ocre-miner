@@ -26,7 +26,8 @@ class TestResultsPage(unittest.TestCase):
         results_page = ResultsPage(results_url, options={'silent': True})
         next_page_url = results_page.next_page_link
         test_url = (
-            'results?q=portrait_facet%3A%22Julia%20Domna%22&start=20&lang=en'
+            'http://numismatics.org/ocre/results?q='
+            'portrait_facet%3A%22Julia%20Domna%22&start=20&lang=en'
         )
         return self.assertTrue(next_page_url == test_url)
 

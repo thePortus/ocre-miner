@@ -1,9 +1,14 @@
+#!/usr/bin/python
+
 import os
 import json
 from collections import UserList
 
 from .base import BaseRequest
-from .settings import ROOT_URL, JSON_API_URL, NOMISMA_URL
+from .settings import (
+    ROOT_URL, JSON_API_URL, NOMISMA_URL,
+    BRITISH_MUSEUM_URL, BRITISH_MUSEUM_NAMES_BY_ID
+)
 
 
 class JSONRecord(BaseRequest):
@@ -54,13 +59,26 @@ class BaseRecords(UserList):
         for internal_dict in parent_data:
             # if a string, simply trim nomisma's url prefix
             if type(internal_dict) == str:
-                new_value = internal_dict.replace(NOMISMA_URL, '')
+                if internal_dict.beginswith(NOMISA_URL):
+                    new_value = internal_dict.replace(NOMISMA_URL, '')
                 retreived_values.append(new_value)
             elif keyword in internal_dict:
                 new_value = internal_dict[keyword]
                 # for urls, remove the nomisma site url prefix
                 if type(new_value) == str:
-                    new_value = new_value.replace(NOMISMA_URL, '')
+                    if new_value.startswith(NOMISMA_URL):
+                        new_value = new_value.replace(NOMISMA_URL, '')
+                    # for british museum entries, replace with value from table
+                    elif new_value.startswith(BRITISH_MUSEUM_URL):
+                        # get last element of the url for the id
+                        british_id_num = new_value.split('/')[-1]
+                        # convert the id to the name in the lookup table
+                        if str(
+                            british_id_num
+                        ) in BRITISH_MUSEUM_NAMES_BY_ID:
+                            new_value = BRITISH_MUSEUM_NAMES_BY_ID[
+                                british_id_num
+                            ]
                 retreived_values.append(new_value)
         # if only one value found, don't return as list, return value itself
         if len(retreived_values) == 1:
@@ -90,7 +108,25 @@ class BaseRecords(UserList):
             # go to dictionary inside json-ld containing the actual save_data
             new_data = raw_data[record.record_id]['@graph']
             # convert from JSON-ld to plain JSON to make easier to use
-            converted_data[record.record_id] = {}
+            converted_data[record.record_id] = {
+                'id': None,
+                'label': None,
+                'source': None,
+                'denomination': None,
+                'material': None,
+                'authority': None,
+                'mint': None,
+                'region': None,
+                'start_date': None,
+                'end_date': None,
+                'obverse_legend': None,
+                'obverse_description': None,
+                'obverse_portraits': [],
+                'reverse_legend': None,
+                'reverse_description': None,
+                'reverse_portraits': [],
+                'all_portraits': []
+            }
             try:
                 converted_data[record.record_id][
                     'id'
@@ -103,7 +139,7 @@ class BaseRecords(UserList):
                 converted_data[record.record_id][
                     'label'
                 ] = self.convert(
-                    new_data[0]['skos:prefLabel']
+                    new_data[0]['skos:prefLabel'], '@value'
                 )
             except:
                 pass
@@ -207,7 +243,7 @@ class BaseRecords(UserList):
                 converted_data[record.record_id][
                     'reverse_legend'
                 ] = self.convert(
-                    new_data[1]['nmo:hasLegend'], '@value'
+                    new_data[2]['nmo:hasLegend'], '@value'
                 )
             except:
                 pass
@@ -215,7 +251,7 @@ class BaseRecords(UserList):
                 converted_data[record.record_id][
                     'reverse_description'
                 ] = self.convert(
-                    new_data[1]['dcterms:description'], '@value'
+                    new_data[2]['dcterms:description'], '@value'
                 )
             except:
                 pass
@@ -223,10 +259,36 @@ class BaseRecords(UserList):
                 converted_data[record.record_id][
                     'reverse_portraits'
                 ] = self.convert(
-                    new_data[1]['nmo:hasPortrait'], '@id'
+                    new_data[2]['nmo:hasPortrait'], '@id'
                 )
             except:
                 pass
+            # append front portraits to combined portraits list
+            if type(
+                converted_data[record.record_id]['obverse_portraits']
+            ) == str:
+                converted_data[record.record_id]['all_portraits'].append(
+                    converted_data[record.record_id]['obverse_portraits']
+                )
+            elif type(
+                converted_data[record.record_id]['obverse_portraits']
+            ) == list:
+                converted_data[record.record_id][
+                    'all_portraits'
+                ] += converted_data[record.record_id]['obverse_portraits']
+            # append back portraits to combined portraits list
+            if type(
+                converted_data[record.record_id]['reverse_portraits']
+            ) == str:
+                converted_data[record.record_id]['all_portraits'].append(
+                    converted_data[record.record_id]['reverse_portraits']
+                )
+            elif type(
+                converted_data[record.record_id]['reverse_portraits']
+            ) == list:
+                converted_data[record.record_id][
+                    'all_portraits'
+                ] += converted_data[record.record_id]['reverse_portraits']
         return converted_data
 
     def save(self, filepath, overwrite=False):

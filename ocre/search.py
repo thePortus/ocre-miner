@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 from .base import BaseRequest
 from .settings import ROOT_URL, SEARCH_URL
 
